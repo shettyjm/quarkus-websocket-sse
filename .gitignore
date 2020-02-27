@@ -1,0 +1,38 @@
+# IntelliJ
+.idea
+!.idea/
+.idea/*
+!.idea/runConfigurations/
+*.ipr
+*.iml
+*.iws
+
+# Ecli?pse
+.project
+.classpath
+.settings/
+bin/
+
+# NetBeans
+nb-configuration.xml
+
+# Visual Studio Code
+.vscode
+
+# OSX
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+
+# patch
+*.orig
+*.rej
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties

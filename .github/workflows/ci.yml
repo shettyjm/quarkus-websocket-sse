@@ -1,0 +1,137 @@
+name: CI
+on: [push]
+jobs:
+
+  maven:
+    strategy:
+      matrix:
+        java: [1.8, 11]
+        os: [ubuntu-latest]
+        nodejs-version: [12]
+        python-version: [3.8]
+        docker-version: [19.09]
+        docker-channel: [stable]
+    name: Java ${{ matrix.java }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Git clone
+        uses: actions/checkout@v1
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install / upgrade pip
+        run: python -m pip install --upgrade pip setuptools
+      - name: Install HTTPie
+        run: pip install --upgrade httpie
+
+      - name: Setup Docker ${{ matrix.docker-channel }} ${{ matrix.docker-version }}
+        uses: docker-practice/actions-setup-docker@master
+        with:
+          docker_version: ${{ matrix.docker-version }}
+          docker_channel: ${{ matrix.docker-channel }}
+
+      - name: Setup NodeJS ${{ matrix.nodejs-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.nodejs-version }}
+      - name: Cache npm ${{ matrix.nodejs-version }} deps
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ matrix.os }}-npm-
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.os }}-npm-
+      - name: Install npm apps (wait-port)
+        run: npm install -g wait-port
+
+      - name: Setup java ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Cache maven deps ~/.m2/repository
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-${{ matrix.os }}-maven-
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.os }}-maven-
+
+      - name: Run maven apps
+        run: |
+          cd $GITHUB_WORKSPACE && ./mvnw quarkus:dev &
+          wait-port 8080
+      - name: Test maven apps
+        run: |
+          http :8080/
+          http :8080/sse/hello
+
+  jar:
+    strategy:
+      matrix:
+        java: [8, 11]
+        os: [ubuntu-latest]
+        nodejs-version: [12]
+        python-version: [3.8]
+        docker-version: [19.09]
+        docker-channel: [stable]
+    name: Java ${{ matrix.java }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Git clone
+        uses: actions/checkout@v1
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install / upgrade pip
+        run: python -m pip install --upgrade pip setuptools
+      - name: Install HTTPie
+        run: pip install --upgrade httpie
+
+      - name: Setup Docker ${{ matrix.docker-channel }} ${{ matrix.docker-version }}
+        uses: docker-practice/actions-setup-docker@master
+        with:
+          docker_version: ${{ matrix.docker-version }}
+          docker_channel: ${{ matrix.docker-channel }}
+
+      - name: Setup NodeJS ${{ matrix.nodejs-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.nodejs-version }}
+      - name: Cache npm ${{ matrix.nodejs-version }} deps
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ matrix.os }}-npm-
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.os }}-npm-
+      - name: Install npm apps (wait-port)
+        run: npm install -g wait-port
+
+      - name: Setup java ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Cache maven deps ~/.m2/repository
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-${{ matrix.os }}-maven-
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.os }}-maven-
+
+      - name: Build jar apps
+        run: cd $GITHUB_WORKSPACE && ./mvnw clean package
+      - name: Run maven apps
+        run: |
+          java -jar $GITHUB_WORKSPACE/target/*-runner.jar &
+          wait-port 8080
+      - name: Test jar apps
+        run: |
+          http :8080/
+          http :8080/sse/hello

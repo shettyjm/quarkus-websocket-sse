@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>quarkus-sse-websocket</title>
+    <style>
+        ul {
+            list-style: none;
+        }
+    </style>
+</head>
+<body>
+<h3><a href="./" target="_blank">Open</a> few browsers clients and close them randomly and see what will happen...</h3>
+<ul id="app"></ul>
+<script>
+    document.addEventListener('DOMContentLoaded', function onDOMContentLoaded() {
+        var prefix = Date.now() % 9 + Math.floor(Math.round(Math.abs(Math.random()) + Math.abs(Math.random())))
+        var suffix = Date.now() % 9 - Math.floor(Math.round(Math.abs(Math.random()) - Math.abs(Math.random())))
+        var websocket = new WebSocket('ws://' + location.host + '/chat/' + prefix + '-anonymous-' + suffix);
+        websocket.onmessage = function onMessage(message) {
+            var li = document.createElement('li');
+            li.textContent = message.data;
+            document.querySelector('#app').appendChild(li);
+        }
+    }, false);
+</script>
+</body>
+</html>
