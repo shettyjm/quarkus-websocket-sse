@@ -32,6 +32,17 @@ jobs:
         with:
           docker_version: ${{ matrix.docker-version }}
           docker_channel: ${{ matrix.docker-channel }}
+      # Setup gcloud CLI
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GCR_DEVOPS_SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ secrets.PROJECT_ID }}
+          export_default_credentials: true
+      - name: Image
+        
+      # Configure docker to use the gcloud command-line tool as a credential helper
+        run: |
+          gcloud auth configure-docker -q
 
       - name: Setup NodeJS ${{ matrix.nodejs-version }}
         uses: actions/setup-node@v1
